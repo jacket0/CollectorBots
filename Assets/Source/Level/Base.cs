@@ -1,11 +1,13 @@
 using System;
 using System.Collections;
+using Assets.Source.Resourse;
 using UnityEngine;
 
 public class Base : MonoBehaviour
 {
     [SerializeField] private Bot[] _bots;
     [SerializeField] private OreScanner _scanner;
+    [SerializeField] private OreRepository _resourceRepository;
     [SerializeField] private float _scanInterval;
 
     private int _resourceCount;
@@ -27,9 +29,12 @@ public class Base : MonoBehaviour
 
     private IEnumerator ScanRoutine()
     {
+        var time = new WaitForSeconds(_scanInterval);
+
         while (true)
         {
-            yield return new WaitForSeconds(_scanInterval);
+            yield return time;
+            _scanner.Scan();
             TryDispatch();
         }
     }
@@ -40,7 +45,7 @@ public class Base : MonoBehaviour
 
         while ((freeBot = FindFreeBot()) != null)
         {
-            Ore ore = _scanner.FindFreeOre();
+            Ore ore = _resourceRepository.TakeFree();
 
             if (ore == null)
                 return;
@@ -62,6 +67,7 @@ public class Base : MonoBehaviour
 
     private void OnOreDelivered(Ore ore)
     {
+        _resourceRepository.Remove(ore);
         _resourceCount++;
         ResourceCountChanged?.Invoke(_resourceCount);
     }

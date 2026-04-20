@@ -22,7 +22,6 @@ public class Bot : MonoBehaviour
     {
         IsIdle = false;
         _targetOre = ore;
-        _targetOre.Reserve();
         StartCoroutine(CollectRoutine());
     }
 
@@ -52,7 +51,7 @@ public class Bot : MonoBehaviour
     {
         target.y = transform.position.y;
 
-        while (Vector3.Distance(transform.position, target) > 0.1f)
+        while ((transform.position - target).sqrMagnitude > 0.1f)
         {
             transform.position = Vector3.MoveTowards(transform.position, target, _moveSpeed * Time.deltaTime);
             yield return null;

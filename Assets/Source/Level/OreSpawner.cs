@@ -27,10 +27,12 @@ public class OreSpawner : MonoBehaviour
 
     private IEnumerator SpawnRoutine()
     {
+        var time = new WaitForSeconds(_spawnInterval);
+
         while (true)
         {
             Spawn();
-            yield return new WaitForSeconds(_spawnInterval);
+            yield return time;
         }
     }
 
