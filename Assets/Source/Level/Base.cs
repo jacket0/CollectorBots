@@ -7,9 +7,7 @@ using UnityEngine;
 public class Base : MonoBehaviour
 {
     [Header("Боты")]
-    [SerializeField] private Bot[] _startingBots;
     [SerializeField] private Bot _botPrefab;
-    [SerializeField] private Base _basePrefab;
 
     [Header("Ресурсы")]
     [SerializeField] private int _botCost = 3;
@@ -37,6 +35,7 @@ public class Base : MonoBehaviour
     public event Action<Bot> BotAdded;
     public event Action<Bot> BotRemoved;
     public event Action<int> ResourceCountChanged;
+    public event Action<Base, Bot, Vector3> ColonizationRequested;
 
     public void Initialize(ResourceScanner scanner, ResourceRepository repository)
     {
@@ -56,16 +55,10 @@ public class Base : MonoBehaviour
 
         if (_scanner != null && _resourceRepository != null)
             _scanner.Initialize(_resourceRepository);
-
-        if (_startingBots != null)
-            _bots.AddRange(_startingBots);
     }
 
     private void Start()
     {
-        foreach (var bot in _bots)
-            ConfigureBot(bot);
-
         ResourceDispatcher dispatcher = FindFirstObjectByType<ResourceDispatcher>();
         dispatcher?.RegisterBase(this);
 
@@ -213,10 +206,7 @@ public class Base : MonoBehaviour
         Destroy(_flag.gameObject);
         _flag = null;
 
-        Base newBase = Instantiate(_basePrefab, position, Quaternion.identity);
-        newBase.Initialize(newBase.GetComponent<ResourceScanner>(), _resourceRepository);
-        bot.TransferTo(newBase);
-        newBase.AddBot(bot);
+        ColonizationRequested?.Invoke(this, bot, position);
 
         _isColonizationInProgress = false;
     }
