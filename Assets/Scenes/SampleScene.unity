@@ -1204,6 +1204,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Base
       objectReference: {fileID: 0}
+    - target: {fileID: 3962762260174313907, guid: 8b044cd9555f8e143aca59d23e72ca58, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 100
+      objectReference: {fileID: 0}
+    - target: {fileID: 3962762260174313907, guid: 8b044cd9555f8e143aca59d23e72ca58, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3962762260174313907, guid: 8b044cd9555f8e143aca59d23e72ca58, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 8092622198543989607, guid: 8b044cd9555f8e143aca59d23e72ca58, type: 3}
       propertyPath: _startingBots.Array.size
       value: 3

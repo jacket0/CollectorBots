@@ -1,12 +1,10 @@
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
+[RequireComponent(typeof(Base))]
 public class BaseResourcesView : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI _resourcesText;
-
-    private static readonly Dictionary<Base, BaseResourcesView> RegisteredViews = new();
 
     private Base _base;
     private Camera _camera;
@@ -14,38 +12,24 @@ public class BaseResourcesView : MonoBehaviour
     private void Awake()
     {
         _camera = Camera.main;
-    }
-
-    private void LateUpdate()
-    {
-        if (_camera != null)
-            transform.rotation = Quaternion.LookRotation(transform.position - _camera.transform.position);
-    }
-
-    public void Initialize(Base baseOwner)
-    {
-        if (_base != null)
-        {
-            _base.ResourceCountChanged -= OnResourceCountChanged;
-        }
-
-        _base = baseOwner;
+        _base = GetComponent<Base>();
 
         if (_base != null)
-        {
             _base.ResourceCountChanged += OnResourceCountChanged;
-            UpdateText(_base.ResourceCount);
-        }
+
+        UpdateText(_base != null ? _base.ResourceCount : 0);
     }
 
     private void OnDestroy()
     {
         if (_base != null)
-        {
             _base.ResourceCountChanged -= OnResourceCountChanged;
-            if (RegisteredViews.TryGetValue(_base, out BaseResourcesView registeredView) && registeredView == this)
-                RegisteredViews.Remove(_base);
-        }
+    }
+
+    private void LateUpdate()
+    {
+        if (_camera != null)
+            _resourcesText.transform.rotation = _camera.transform.rotation;
     }
 
     private void OnResourceCountChanged(int count)

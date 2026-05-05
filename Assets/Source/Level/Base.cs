@@ -11,10 +11,6 @@ public class Base : MonoBehaviour
     [SerializeField] private Bot _botPrefab;
     [SerializeField] private Base _basePrefab;
 
-    [Header("UI")]
-    [SerializeField] private BaseResourcesView _resourcesViewPrefab;
-    [SerializeField] private Vector3 _resourcesViewOffset = new Vector3(0, 5f, 0);
-
     [Header("Ресурсы")]
     [SerializeField] private int _botCost = 3;
     [SerializeField] private int _colonizationCost = 5;
@@ -28,7 +24,6 @@ public class Base : MonoBehaviour
     private ResourceScanner _scanner;
     private ResourceRepository _resourceRepository;
     private BaseFlag _flag;
-    private BaseResourcesView _resourcesViewInstance;
 
     private readonly List<Bot> _bots = new();
     private int _resourceCount;
@@ -71,39 +66,10 @@ public class Base : MonoBehaviour
         foreach (var bot in _bots)
             ConfigureBot(bot);
 
-        ResolveResourcesView();
-
-        if (_resourcesViewInstance != null)
-            _resourcesViewInstance.Initialize(this);
-
         ResourceDispatcher dispatcher = FindFirstObjectByType<ResourceDispatcher>();
         dispatcher?.RegisterBase(this);
 
         StartCoroutine(ScanRoutine());
-    }
-
-    private void ResolveResourcesView()
-    {
-        BaseResourcesView[] views = GetComponentsInChildren<BaseResourcesView>(true);
-
-        if (views.Length > 0)
-        {
-            _resourcesViewInstance = views[0];
-
-            for (int i = 1; i < views.Length; i++)
-                Destroy(views[i].gameObject);
-
-            return;
-        }
-
-        if (_resourcesViewPrefab != null)
-        {
-            _resourcesViewInstance = Instantiate(
-                _resourcesViewPrefab,
-                transform.position + _resourcesViewOffset,
-                Quaternion.identity,
-                transform);
-        }
     }
 
     public void PlaceFlag(Vector3 position)
@@ -208,9 +174,6 @@ public class Base : MonoBehaviour
         ResourceDispatcher dispatcher = FindFirstObjectByType<ResourceDispatcher>();
         dispatcher?.UnregisterBase(this);
 
-        if (_resourcesViewInstance != null)
-            Destroy(_resourcesViewInstance.gameObject);
-
         if (_flag != null)
             Destroy(_flag.gameObject);
     }
@@ -258,5 +221,3 @@ public class Base : MonoBehaviour
         _isColonizationInProgress = false;
     }
 }
-
-
