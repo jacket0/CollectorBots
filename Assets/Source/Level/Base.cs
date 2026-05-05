@@ -6,11 +6,6 @@ using UnityEngine;
 [RequireComponent(typeof(ResourceScanner))]
 public class Base : MonoBehaviour
 {
-    [Header("Боты")]
-    [SerializeField] private Bot[] _startingBots;
-    [SerializeField] private Bot _botPrefab;
-    [SerializeField] private Base _basePrefab;
-
     [Header("Ресурсы")]
     [SerializeField] private int _botCost = 3;
     [SerializeField] private int _colonizationCost = 5;
@@ -37,6 +32,8 @@ public class Base : MonoBehaviour
     public event Action<Bot> BotAdded;
     public event Action<Bot> BotRemoved;
     public event Action<int> ResourceCountChanged;
+    public event Action<Base, Bot, Vector3> ColonizationRequested;
+    public event Action<Base> BotSpawnRequested;
 
     public void Initialize(ResourceScanner scanner, ResourceRepository repository)
     {
@@ -47,28 +44,8 @@ public class Base : MonoBehaviour
             _scanner.Initialize(repository);
     }
 
-    private void Awake()
-    {
-        _scanner = GetComponent<ResourceScanner>();
-
-        if (_resourceRepository == null)
-            _resourceRepository = FindFirstObjectByType<ResourceRepository>();
-
-        if (_scanner != null && _resourceRepository != null)
-            _scanner.Initialize(_resourceRepository);
-
-        if (_startingBots != null)
-            _bots.AddRange(_startingBots);
-    }
-
     private void Start()
     {
-        foreach (var bot in _bots)
-            ConfigureBot(bot);
-
-        ResourceDispatcher dispatcher = FindFirstObjectByType<ResourceDispatcher>();
-        dispatcher?.RegisterBase(this);
-
         StartCoroutine(ScanRoutine());
     }
 
@@ -124,7 +101,7 @@ public class Base : MonoBehaviour
 
     private void ConfigureBot(Bot bot)
     {
-        bot.BindToBase(this);
+        bot.TransferTo(this);
         bot.ResourceDelivered += OnResourceDelivered;
     }
 
@@ -160,16 +137,11 @@ public class Base : MonoBehaviour
             return;
 
         _resourceCount -= _botCost;
-
-        Bot bot = Instantiate(_botPrefab, transform.position, Quaternion.identity);
-        _bots.Add(bot);
-        ConfigureBot(bot);
-        BotAdded?.Invoke(bot);
-
         ResourceCountChanged?.Invoke(_resourceCount);
+        BotSpawnRequested?.Invoke(this);
     }
 
-    private void OnDisable()
+    private void OnDestroy()
     {
         ResourceDispatcher dispatcher = FindFirstObjectByType<ResourceDispatcher>();
         dispatcher?.UnregisterBase(this);
@@ -213,11 +185,8 @@ public class Base : MonoBehaviour
         Destroy(_flag.gameObject);
         _flag = null;
 
-        Base newBase = Instantiate(_basePrefab, position, Quaternion.identity);
-        newBase.Initialize(newBase.GetComponent<ResourceScanner>(), _resourceRepository);
-        bot.TransferTo(newBase);
-        newBase.AddBot(bot);
-
         _isColonizationInProgress = false;
+
+        ColonizationRequested?.Invoke(this, bot, position);
     }
 }

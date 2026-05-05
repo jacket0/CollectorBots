@@ -2,11 +2,10 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-
 public class Bot : MonoBehaviour
 {
     [SerializeField] private float _moveSpeed;
-    [SerializeField] private float _oreOffset = 0.1f;
+    [SerializeField] private float _resourceOffset = 0.1f;
 
     private Resource _targetResource;
     private Base _mainBase;
@@ -17,12 +16,6 @@ public class Bot : MonoBehaviour
     public event Action<Bot> BecameIdle;
 
     public Base MainBase => _mainBase;
-
-    public void BindToBase(Base baseOwner)
-    {
-        if (_mainBase == null)
-            _mainBase = baseOwner;
-    }
 
     public void TransferTo(Base newBase)
     {
@@ -85,7 +78,7 @@ public class Bot : MonoBehaviour
         }
 
         targetResource.transform.SetParent(transform);
-        targetResource.transform.localPosition = new Vector3(0, _oreOffset, 0);
+        targetResource.transform.localPosition = new Vector3(0, _resourceOffset, 0);
 
         if (homeBase == null)
         {

@@ -26,7 +26,9 @@ public class BaseFlagInputHandler : MonoBehaviour
             return;
         }
 
-        if (hit.collider.TryGetComponent(out Base clickedBase))
+        Base clickedBase = hit.collider.GetComponentInParent<Base>();
+
+        if (clickedBase != null)
         {
             _selectedBase = clickedBase;
             return;

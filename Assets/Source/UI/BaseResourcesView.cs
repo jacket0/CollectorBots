@@ -4,7 +4,7 @@ using UnityEngine;
 [RequireComponent(typeof(Base))]
 public class BaseResourcesView : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI _resourcesText;
+    [SerializeField] private TextMeshPro _resourcesText;
 
     private Base _base;
     private Camera _camera;
@@ -29,7 +29,14 @@ public class BaseResourcesView : MonoBehaviour
     private void LateUpdate()
     {
         if (_camera != null)
-            _resourcesText.transform.rotation = _camera.transform.rotation;
+        {
+            _resourcesText.transform.LookAt(_camera.transform.position, Vector3.up);
+            _resourcesText.transform.forward = _camera.transform.forward;
+        }
+
+        Vector3 direction = _resourcesText.transform.position - _camera.transform.position;
+        direction.y = 0f;
+        _resourcesText.transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
     }
 
     private void OnResourceCountChanged(int count)
