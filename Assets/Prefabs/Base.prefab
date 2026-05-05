@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5469297103017485377}
   - component: {fileID: 6349154481352003365}
   - component: {fileID: 8092622198543989607}
-  - component: {fileID: 7553704075585828365}
+  - component: {fileID: 8178761991685623572}
   m_Layer: 0
   m_Name: Base
   m_TagString: Untagged
@@ -126,13 +126,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d0d202ce3a90c8449a8e10c7117f5ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Base
-  _bots:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  _scanner: {fileID: 7553704075585828365}
+  _startingBots: []
+  _botPrefab: {fileID: 1059058603359603811, guid: 7e635f75d303e3542b40d6fa6c8a0d20, type: 3}
+  _basePrefab: {fileID: 8092622198543989607}
+  _resourcesViewPrefab: {fileID: 3229892252024992250, guid: 625aa734d5ae08043b03f916378646bf, type: 3}
+  _resourcesViewOffset: {x: 0, y: 3, z: 0}
+  _botCost: 3
+  _colonizationCost: 5
+  _flagPrefab: {fileID: -8456083488669741591, guid: 38fc05de753b91547919b5bd8a051a55, type: 3}
   _scanInterval: 1
---- !u!114 &7553704075585828365
+--- !u!114 &8178761991685623572
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -144,7 +147,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75aad8f2b4d173e49a0445f44f017522, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OreScanner
-  _scanRadius: 50
+  _scanRadius: 30
   _oreLayer:
     serializedVersion: 2
     m_Bits: 64

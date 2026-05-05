@@ -2,43 +2,46 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Assets.Source.Resourse
+public class ResourceRepository : MonoBehaviour
 {
-    public class OreRepository : MonoBehaviour
+    private readonly List<Resource> _freeResources = new();
+    private readonly List<Resource> _busyResources = new();
+
+    public IReadOnlyList<Resource> FreeResources => _freeResources;
+
+    public event Action<Resource> ResourceAdded;
+
+    public void Pull(Resource resource)
     {
-        private readonly List<Ore> _freeResources = new();
-        private readonly List<Ore> _busyResources = new();
+        if (resource == null)
+            throw new NullReferenceException();
 
-        public void Pull(Ore ore)
-        {
-            if (ore == null)
-                throw new NullReferenceException();
+        if (_freeResources.Contains(resource) || _busyResources.Contains(resource))
+            return;
 
-            if (_freeResources.Contains(ore) || _busyResources.Contains(ore))
-                return;
+        _freeResources.Add(resource);
+        ResourceAdded?.Invoke(resource);
+    }
 
-            _freeResources.Add(ore);
-        }
+    public bool TryTake(Resource resource)
+    {
+        if (resource == null)
+            throw new NullReferenceException();
 
-        public Ore TakeFree()
-        {
-            if (_freeResources.Count == 0)
-                return null;
+        if (!_freeResources.Remove(resource))
+            return false;
 
-            Ore ore = _freeResources[0];
-            _freeResources.RemoveAt(0);
-            _busyResources.Add(ore);
+        _busyResources.Add(resource);
 
-            return ore;
-        }
+        return true;
+    }
 
-        public void Remove(Ore ore)
-        {
-            if (ore == null)
-                throw new NullReferenceException();
+    public void Remove(Resource resource)
+    {
+        if (resource == null)
+            throw new NullReferenceException();
 
-            _freeResources.Remove(ore);
-            _busyResources.Remove(ore);
-        }
+        _freeResources.Remove(resource);
+        _busyResources.Remove(resource);
     }
 }

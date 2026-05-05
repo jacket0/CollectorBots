@@ -1,38 +1,60 @@
-using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
 public class BaseResourcesView : MonoBehaviour
 {
-    [SerializeField] private Base _base;
     [SerializeField] private TextMeshProUGUI _resourcesText;
 
-    private string _resourcesTextPrefix = "Количество доступных ресурсов: ";
+    private static readonly Dictionary<Base, BaseResourcesView> RegisteredViews = new();
 
-    private void OnEnable()
+    private Base _base;
+    private Camera _camera;
+
+    private void Awake()
     {
-        if (_base != null)
-            _base.ResourceCountChanged += OnResourceCountChanged;
-
-        Refresh();
+        _camera = Camera.main;
     }
 
-    private void OnDisable()
+    private void LateUpdate()
+    {
+        if (_camera != null)
+            transform.rotation = Quaternion.LookRotation(transform.position - _camera.transform.position);
+    }
+
+    public void Initialize(Base baseOwner)
     {
         if (_base != null)
+        {
             _base.ResourceCountChanged -= OnResourceCountChanged;
+        }
+
+        _base = baseOwner;
+
+        if (_base != null)
+        {
+            _base.ResourceCountChanged += OnResourceCountChanged;
+            UpdateText(_base.ResourceCount);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (_base != null)
+        {
+            _base.ResourceCountChanged -= OnResourceCountChanged;
+            if (RegisteredViews.TryGetValue(_base, out BaseResourcesView registeredView) && registeredView == this)
+                RegisteredViews.Remove(_base);
+        }
     }
 
     private void OnResourceCountChanged(int count)
     {
-        _resourcesText.text = count.ToString();
+        UpdateText(count);
     }
 
-    private void Refresh()
+    private void UpdateText(int count)
     {
-        if (_base == null || _resourcesText == null)
-            throw new NullReferenceException();
-
-        _resourcesText.text = _resourcesTextPrefix + _base.ResourceCount.ToString();
+        _resourcesText.text = $"Ресурсы: {count}";
     }
 }

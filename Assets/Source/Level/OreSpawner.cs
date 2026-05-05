@@ -1,28 +1,28 @@
 using System.Collections;
 using UnityEngine;
 
-public class OreSpawner : MonoBehaviour
+public class ResourceSpawner : MonoBehaviour
 {
-    [SerializeField] private Ore _ore;
+    [SerializeField] private Resource _resource;
     [SerializeField] private float _spawnInterval;
     [SerializeField] private int _capacity = 5;
     [SerializeField] private int _maxSize = 50;
 
     private Transform[] _spawnPoints;
-    private Pool<Ore> _pool;
+    private Pool<Resource> _pool;
 
     private void Start()
     {
         _spawnPoints = GetComponentsInChildren<Transform>(true);
-        _pool = new Pool<Ore>(_ore, _capacity, _maxSize);
+        _pool = new Pool<Resource>(_resource, _capacity, _maxSize);
         StartCoroutine(SpawnRoutine());
     }
 
-    public Ore Spawn()
+    public Resource Spawn()
     {
-        Ore ore = _pool.GetObject();
-        ore.transform.position = GetRandomSpawnPoint();
-        return ore;
+        Resource resource = _pool.GetObject();
+        resource.transform.position = GetRandomSpawnPoint();
+        return resource;
     }
 
     private IEnumerator SpawnRoutine()

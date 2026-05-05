@@ -1,11 +1,11 @@
 using System;
 using UnityEngine;
 
-public class Ore : MonoBehaviour, IReleasable<Ore>
+public class Resource : MonoBehaviour, IReleasable<Resource>
 {
     [SerializeField] private Material _material;
 
-    public event Action<Ore> Released;
+    public event Action<Resource> Released;
 
     public void Release()
     {

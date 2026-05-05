@@ -1,75 +1,262 @@
 using System;
 using System.Collections;
-using Assets.Source.Resourse;
+using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(ResourceScanner))]
 public class Base : MonoBehaviour
 {
-    [SerializeField] private Bot[] _bots;
-    [SerializeField] private OreScanner _scanner;
-    [SerializeField] private OreRepository _resourceRepository;
+    [Header("Боты")]
+    [SerializeField] private Bot[] _startingBots;
+    [SerializeField] private Bot _botPrefab;
+    [SerializeField] private Base _basePrefab;
+
+    [Header("UI")]
+    [SerializeField] private BaseResourcesView _resourcesViewPrefab;
+    [SerializeField] private Vector3 _resourcesViewOffset = new Vector3(0, 5f, 0);
+
+    [Header("Ресурсы")]
+    [SerializeField] private int _botCost = 3;
+    [SerializeField] private int _colonizationCost = 5;
+
+    [Header("Флаг")]
+    [SerializeField] private BaseFlag _flagPrefab;
+
+    [Header("Сканирование")]
     [SerializeField] private float _scanInterval;
 
+    private ResourceScanner _scanner;
+    private ResourceRepository _resourceRepository;
+    private BaseFlag _flag;
+    private BaseResourcesView _resourcesViewInstance;
+
+    private readonly List<Bot> _bots = new();
     private int _resourceCount;
+    private bool _isColonizationInProgress;
+    private int _minColonizationBots = 1;
+
+    public IReadOnlyList<Bot> Bots => _bots;
 
     public int ResourceCount => _resourceCount;
 
+    public event Action<Bot> BotAdded;
+    public event Action<Bot> BotRemoved;
     public event Action<int> ResourceCountChanged;
+
+    public void Initialize(ResourceScanner scanner, ResourceRepository repository)
+    {
+        _scanner = scanner;
+        _resourceRepository = repository;
+
+        if (_scanner != null && _resourceRepository != null)
+            _scanner.Initialize(repository);
+    }
+
+    private void Awake()
+    {
+        _scanner = GetComponent<ResourceScanner>();
+
+        if (_resourceRepository == null)
+            _resourceRepository = FindFirstObjectByType<ResourceRepository>();
+
+        if (_scanner != null && _resourceRepository != null)
+            _scanner.Initialize(_resourceRepository);
+
+        if (_startingBots != null)
+            _bots.AddRange(_startingBots);
+    }
 
     private void Start()
     {
         foreach (var bot in _bots)
-        {
-            bot.Initialize(transform);
-            bot.OreDelivered += OnOreDelivered;
-        }
+            ConfigureBot(bot);
+
+        ResolveResourcesView();
+
+        if (_resourcesViewInstance != null)
+            _resourcesViewInstance.Initialize(this);
+
+        ResourceDispatcher dispatcher = FindFirstObjectByType<ResourceDispatcher>();
+        dispatcher?.RegisterBase(this);
 
         StartCoroutine(ScanRoutine());
     }
 
+    private void ResolveResourcesView()
+    {
+        BaseResourcesView[] views = GetComponentsInChildren<BaseResourcesView>(true);
+
+        if (views.Length > 0)
+        {
+            _resourcesViewInstance = views[0];
+
+            for (int i = 1; i < views.Length; i++)
+                Destroy(views[i].gameObject);
+
+            return;
+        }
+
+        if (_resourcesViewPrefab != null)
+        {
+            _resourcesViewInstance = Instantiate(
+                _resourcesViewPrefab,
+                transform.position + _resourcesViewOffset,
+                Quaternion.identity,
+                transform);
+        }
+    }
+
+    public void PlaceFlag(Vector3 position)
+    {
+        if (_flag == null)
+            _flag = Instantiate(_flagPrefab, position, Quaternion.identity);
+        else
+            _flag.transform.position = position;
+    }
+
+    public Bot FindClosestIdleBot(Vector3 position)
+    {
+        Bot closestBot = null;
+        float minDistance = float.MaxValue;
+
+        foreach (Bot bot in _bots)
+        {
+            if (!bot.IsIdle)
+                continue;
+
+            float distance = (bot.transform.position - position).sqrMagnitude;
+
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                closestBot = bot;
+            }
+        }
+
+        return closestBot;
+    }
+
+    public void AddBot(Bot bot)
+    {
+        if (_bots.Contains(bot))
+            return;
+
+        _bots.Add(bot);
+        ConfigureBot(bot);
+        BotAdded?.Invoke(bot);
+    }
+
+    public void RemoveBot(Bot bot)
+    {
+        if (!_bots.Contains(bot))
+            return;
+
+        bot.ResourceDelivered -= OnResourceDelivered;
+        _bots.Remove(bot);
+        BotRemoved?.Invoke(bot);
+    }
+
+    private void ConfigureBot(Bot bot)
+    {
+        bot.BindToBase(this);
+        bot.ResourceDelivered += OnResourceDelivered;
+    }
+
     private IEnumerator ScanRoutine()
     {
-        var time = new WaitForSeconds(_scanInterval);
+        if (_scanner == null || _resourceRepository == null)
+            yield break;
+
+        var interval = new WaitForSeconds(_scanInterval);
 
         while (true)
         {
-            yield return time;
             _scanner.Scan();
-            TryDispatch();
+            yield return interval;
         }
     }
 
-    private void TryDispatch()
+    private void OnResourceDelivered(Resource resource)
     {
-        Bot freeBot;
+        _resourceRepository.Remove(resource);
+        _resourceCount++;
+        ResourceCountChanged?.Invoke(_resourceCount);
 
-        while ((freeBot = FindFreeBot()) != null)
-        {
-            Ore ore = _resourceRepository.TakeFree();
-
-            if (ore == null)
-                return;
-
-            freeBot.Collect(ore);
-        }
+        if (_flag != null)
+            TryColonize();
+        else
+            TrySpawnBot();
     }
 
-    private Bot FindFreeBot()
+    private void TrySpawnBot()
     {
+        if (_resourceCount < _botCost)
+            return;
+
+        _resourceCount -= _botCost;
+
+        Bot bot = Instantiate(_botPrefab, transform.position, Quaternion.identity);
+        _bots.Add(bot);
+        ConfigureBot(bot);
+        BotAdded?.Invoke(bot);
+
+        ResourceCountChanged?.Invoke(_resourceCount);
+    }
+
+    private void OnDisable()
+    {
+        ResourceDispatcher dispatcher = FindFirstObjectByType<ResourceDispatcher>();
+        dispatcher?.UnregisterBase(this);
+
+        if (_resourcesViewInstance != null)
+            Destroy(_resourcesViewInstance.gameObject);
+
+        if (_flag != null)
+            Destroy(_flag.gameObject);
+    }
+
+    private void TryColonize()
+    {
+        if (_isColonizationInProgress || _resourceCount < _colonizationCost || _bots.Count <= _minColonizationBots)
+            return;
+
+        Bot freeBot = null;
+
         foreach (var bot in _bots)
         {
             if (bot.IsIdle)
-                return bot;
+            {
+                freeBot = bot;
+                break;
+            }
         }
 
-        return null;
+        if (freeBot == null)
+            return;
+
+        _isColonizationInProgress = true;
+        _resourceCount -= _colonizationCost;
+        ResourceCountChanged?.Invoke(_resourceCount);
+
+        Vector3 flagPosition = _flag.transform.position;
+        RemoveBot(freeBot);
+        freeBot.GoToFlag(flagPosition, OnBotArrivedAtFlag);
     }
 
-    private void OnOreDelivered(Ore ore)
+    private void OnBotArrivedAtFlag(Bot bot)
     {
-        _resourceRepository.Remove(ore);
-        _resourceCount++;
-        ResourceCountChanged?.Invoke(_resourceCount);
+        Vector3 position = bot.transform.position;
+
+        Destroy(_flag.gameObject);
+        _flag = null;
+
+        Base newBase = Instantiate(_basePrefab, position, Quaternion.identity);
+        newBase.Initialize(newBase.GetComponent<ResourceScanner>(), _resourceRepository);
+        bot.TransferTo(newBase);
+        newBase.AddBot(bot);
+
+        _isColonizationInProgress = false;
     }
 }
+
 
