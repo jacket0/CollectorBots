@@ -2,24 +2,23 @@ using System;
 using System.Collections;
 using UnityEngine;
 
-public class Bot : MonoBehaviour
+public class Bot : MonoBehaviour, IReleasable<Bot>
 {
     [SerializeField] private float _moveSpeed;
     [SerializeField] private float _resourceOffset = 0.1f;
 
     private Resource _targetResource;
-    private Base _mainBase;
+    private IDeliveryPoint _deliveryPoint;
 
     public bool IsIdle { get; private set; } = true;
 
     public event Action<Resource> ResourceDelivered;
     public event Action<Bot> BecameIdle;
+    public event Action<Bot> Released;
 
-    public Base MainBase => _mainBase;
-
-    public void TransferTo(Base newBase)
+    public void SetDeliveryPoint(IDeliveryPoint deliveryPoint)
     {
-        _mainBase = newBase;
+        _deliveryPoint = deliveryPoint;
     }
 
     public void Collect(Resource resource)
@@ -27,21 +26,21 @@ public class Bot : MonoBehaviour
         if (resource == null)
             return;
 
-        if (!IsIdle)
-            return;
-
-        IsIdle = false;
-        _targetResource = resource;
-        StartCoroutine(CollectRoutine());
+        if (IsIdle)
+        {
+            IsIdle = false;
+            _targetResource = resource;
+            StartCoroutine(CollectRoutine());
+        }
     }
 
     public void GoToFlag(Vector3 position, Action<Bot> onArrived)
     {
-        if (!IsIdle)
-            return;
-
-        IsIdle = false;
-        StartCoroutine(GoToFlagRoutine(position, onArrived));
+        if (IsIdle)
+        {
+            IsIdle = false;
+            StartCoroutine(GoToFlagRoutine(position, onArrived));
+        }
     }
 
     private IEnumerator GoToFlagRoutine(Vector3 position, Action<Bot> onArrived)
@@ -55,20 +54,20 @@ public class Bot : MonoBehaviour
 
     private IEnumerator CollectRoutine()
     {
-        Base homeBase = _mainBase;
+        IDeliveryPoint homePoint = _deliveryPoint;
         Resource targetResource = _targetResource;
 
-        if (homeBase == null || targetResource == null)
+        if (homePoint == null || targetResource == null)
         {
             IsIdle = true;
             BecameIdle?.Invoke(this);
             yield break;
         }
 
-        Vector3 orePosition = targetResource.transform.position;
+        Vector3 resourcePosition = targetResource.transform.position;
 
-        transform.LookAt(orePosition);
-        yield return MoveTo(orePosition);
+        transform.LookAt(resourcePosition);
+        yield return MoveTo(resourcePosition);
 
         if (targetResource == null)
         {
@@ -80,15 +79,8 @@ public class Bot : MonoBehaviour
         targetResource.transform.SetParent(transform);
         targetResource.transform.localPosition = new Vector3(0, _resourceOffset, 0);
 
-        if (homeBase == null)
-        {
-            IsIdle = true;
-            BecameIdle?.Invoke(this);
-            yield break;
-        }
-
-        transform.LookAt(homeBase.transform.position);
-        yield return MoveTo(homeBase.transform.position);
+        transform.LookAt(homePoint.Position);
+        yield return MoveTo(homePoint.Position);
 
         if (targetResource == null)
         {

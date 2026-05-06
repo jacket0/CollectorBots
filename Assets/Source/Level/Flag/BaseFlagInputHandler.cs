@@ -10,7 +10,7 @@ public class BaseFlagInputHandler : MonoBehaviour
     private void Awake()
     {
         if (_camera == null)
-            _camera = Camera.main;
+            Debug.LogError($"[{nameof(BaseFlagInputHandler)}] Camera is not assigned!", this);
     }
 
     private void Update()

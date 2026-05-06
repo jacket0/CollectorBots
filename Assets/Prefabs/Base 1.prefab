@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 4954686748991224641}
   - component: {fileID: 3827480672020403350}
   - component: {fileID: 2363025954040507966}
+  - component: {fileID: 6172383284844808257}
   m_Layer: 7
   m_Name: Base 1
   m_TagString: Untagged
@@ -64,9 +65,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3d0d202ce3a90c8449a8e10c7117f5ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Base
-  _botCost: 3
-  _colonizationCost: 5
-  _flagPrefab: {fileID: -8456083488669741591, guid: 38fc05de753b91547919b5bd8a051a55, type: 3}
   _scanInterval: 1
 --- !u!114 &2363025954040507966
 MonoBehaviour:
@@ -81,6 +79,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BaseResourcesView
   _resourcesText: {fileID: 8415814982482448922}
+--- !u!114 &6172383284844808257
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5832533077260845728}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed53d355f6596814198195ac529a06fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BaseEconomy
+  _botCost: 3
+  _colonizationCost: 5
+  _flagPrefab: {fileID: -8456083488669741591, guid: 38fc05de753b91547919b5bd8a051a55, type: 3}
+  _flagPoolCapacity: 1
 --- !u!1 &6470914318957290483
 GameObject:
   m_ObjectHideFlags: 0

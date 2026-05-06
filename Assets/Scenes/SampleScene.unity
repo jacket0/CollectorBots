@@ -565,8 +565,9 @@ GameObject:
   m_Component:
   - component: {fileID: 679574096}
   - component: {fileID: 679574095}
-  - component: {fileID: 679574094}
   - component: {fileID: 679574097}
+  - component: {fileID: 679574098}
+  - component: {fileID: 679574099}
   m_Layer: 0
   m_Name: LevelService
   m_TagString: Untagged
@@ -574,18 +575,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &679574094
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 679574093}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0407bff65b54b4849b9ae2753b1cc63c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ResourceDispatcher
 --- !u!114 &679574095
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -627,8 +616,38 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BaseSpawner
   _basePrefab: {fileID: 3827480672020403350, guid: 8ea0db15b66d42542b925afb05de2c30, type: 3}
   _spawnPosition: {x: 10, y: 0, z: -10}
-  _botPrefab: {fileID: 1059058603359603811, guid: 7e635f75d303e3542b40d6fa6c8a0d20, type: 3}
   _initialBotCount: 3
+--- !u!114 &679574098
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 679574093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e66cb7551e68b0b46830cef46af74ce7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Bootstrap
+  _repository: {fileID: 679574095}
+  _baseSpawner: {fileID: 679574097}
+  _botSpawner: {fileID: 679574099}
+  _camera: {fileID: 330585545}
+--- !u!114 &679574099
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 679574093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7eac8d2271ffb9d4cbefca7cfc02b32c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BotSpawner
+  _botPrefab: {fileID: 1059058603359603811, guid: 7e635f75d303e3542b40d6fa6c8a0d20, type: 3}
+  _capacity: 5
+  _maxSize: 20
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0

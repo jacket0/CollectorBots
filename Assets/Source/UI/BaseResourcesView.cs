@@ -1,38 +1,35 @@
 using TMPro;
 using UnityEngine;
 
-[RequireComponent(typeof(Base))]
+[RequireComponent(typeof(BaseEconomy))]
 public class BaseResourcesView : MonoBehaviour
 {
     [SerializeField] private TextMeshPro _resourcesText;
 
-    private Base _base;
+    private BaseEconomy _economy;
     private Camera _camera;
+
+    public void Initialize(Camera camera)
+    {
+        _camera = camera;
+    }
 
     private void Awake()
     {
-        _camera = Camera.main;
-        _base = GetComponent<Base>();
-
-        if (_base != null)
-            _base.ResourceCountChanged += OnResourceCountChanged;
-
-        UpdateText(_base != null ? _base.ResourceCount : 0);
+        _economy = GetComponent<BaseEconomy>();
+        _economy.ResourceCountChanged += OnResourceCountChanged;
+        UpdateText(0);
     }
 
     private void OnDestroy()
     {
-        if (_base != null)
-            _base.ResourceCountChanged -= OnResourceCountChanged;
+        _economy.ResourceCountChanged -= OnResourceCountChanged;
     }
 
     private void LateUpdate()
     {
-        if (_camera != null)
-        {
-            _resourcesText.transform.LookAt(_camera.transform.position, Vector3.up);
-            _resourcesText.transform.forward = _camera.transform.forward;
-        }
+        if (_camera == null)
+            return;
 
         Vector3 direction = _resourcesText.transform.position - _camera.transform.position;
         direction.y = 0f;
